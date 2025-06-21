@@ -4,7 +4,9 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class MonedaViewModel : ViewModel() {
     private val _conversionRates = mutableStateOf<Map<String, Double>>(emptyMap())
@@ -23,5 +25,26 @@ class MonedaViewModel : ViewModel() {
             _conversionRates.value = rates
         }
     }
+
+    private val _availableCurrencies = mutableStateOf<List<String>>(emptyList())
+    val availableCurrencies: State<List<String>> = _availableCurrencies
+
+    fun fetchAvailableCurrencies() {
+        viewModelScope.launch {
+            try {
+                val snapshot = FirebaseFirestore.getInstance()
+                    .collection("Monedas")
+                    .get()
+                    .await()
+
+                val monedas = snapshot.documents.mapNotNull { it.getString("nombre") }
+                _availableCurrencies.value = monedas
+            } catch (e: Exception) {
+                println("Error al cargar monedas: ${e.message}")
+            }
+        }
+    }
+
+
 }
 

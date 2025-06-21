@@ -1,19 +1,21 @@
 package esan.mobile.Condor23100185.screens.home
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,7 +23,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -30,74 +31,111 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import esan.mobile.Condor23100185.Firebase.FirebaseAuthManager
 import esan.mobile.Condor23100185.ViewModels.MonedaViewModel
-import esan.mobile.Condor23100185.screens.Components.DropdownMenuField
 import kotlinx.coroutines.launch
-import androidx.compose.material.icons.*// similar visual
-import androidx.compose.material3.TextButton
 
 
 @Composable
 fun ConversionScreen(viewModel: MonedaViewModel) {
-    var baseCurrency by remember { mutableStateOf("USD") }
-    var targetCurrency by remember { mutableStateOf("PEN") }
+    val coroutineScope = rememberCoroutineScope()
+    val rates = viewModel.conversionRates.value
+    val availableCurrencies = viewModel.availableCurrencies.value
+
+    var baseCurrency by remember { mutableStateOf("") }
+    var targetCurrency by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
     var result by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
-    val coroutineScope = rememberCoroutineScope()
-    val rates = viewModel.conversionRates.value
-    val availableCurrencies = listOf("USD", "EUR", "PEN", "JPY")
+    var expandedBase by remember { mutableStateOf(false) }
+    var expandedTarget by remember { mutableStateOf(false) }
 
-    LaunchedEffect(baseCurrency) {
-        viewModel.loadRates(baseCurrency)
+    LaunchedEffect(Unit) {
+        viewModel.fetchAvailableCurrencies()
     }
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(30.dp)) {
-
+    Column(modifier = Modifier.padding(30.dp)) {
         Text("Conversor de Monedas", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Sección de selección de monedas con icono central para invertir
-        // DropDown Moneda Base
+        // Dropdown: Moneda base
         Text("Moneda base")
-        DropdownMenuField(
-            options = availableCurrencies,
-            selectedOption = baseCurrency,
-            onOptionSelected = {
-                baseCurrency = it
-                viewModel.loadRates(baseCurrency)
+        Box {
+            OutlinedTextField(
+                value = baseCurrency,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Selecciona") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expandedBase = true }
+            )
+
+            DropdownMenu(
+                expanded = expandedBase,
+                onDismissRequest = { expandedBase = false }
+            ) {
+                availableCurrencies.forEach { currency ->
+                    DropdownMenuItem(
+                        text = { Text(currency) },
+                        onClick = {
+                            baseCurrency = currency
+                            expandedBase = false
+                            viewModel.loadRates(currency)
+                        }
+                    )
+                }
             }
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-// Botón "Intercambiar"
-        TextButton(
-            onClick = {
-                val temp = baseCurrency
-                baseCurrency = targetCurrency
-                targetCurrency = temp
-                viewModel.loadRates(baseCurrency)
-            },
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        ) {
-            Text("Intercambiar")
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-// DropDown Moneda Destino
+        // Botón de Intercambiar
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            TextButton(onClick = {
+                val temp = baseCurrency
+                baseCurrency = targetCurrency
+                targetCurrency = temp
+                if (baseCurrency.isNotEmpty()) {
+                    viewModel.loadRates(baseCurrency)
+                }
+            }) {
+                Text("Intercambiar", fontWeight = FontWeight.Bold)
+            }
+        }
+
+        // Dropdown: Moneda destino
         Text("Convertir a")
-        DropdownMenuField(
-            options = availableCurrencies,
-            selectedOption = targetCurrency,
-            onOptionSelected = { targetCurrency = it }
-        )
+        Box {
+            OutlinedTextField(
+                value = targetCurrency,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Selecciona") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expandedTarget = true }
+            )
 
+            DropdownMenu(
+                expanded = expandedTarget,
+                onDismissRequest = { expandedTarget = false }
+            ) {
+                availableCurrencies.forEach { currency ->
+                    DropdownMenuItem(
+                        text = { Text(currency) },
+                        onClick = {
+                            targetCurrency = currency
+                            expandedTarget = false
+                        }
+                    )
+                }
+            }
+        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = amount,
@@ -129,6 +167,8 @@ fun ConversionScreen(viewModel: MonedaViewModel) {
                 }
                 else -> {
                     result = String.format("%.2f", value * rate)
+
+                    // Guardar conversión
                     coroutineScope.launch {
                         FirebaseAuthManager.guardarConversion(
                             monto = value,
@@ -155,5 +195,6 @@ fun ConversionScreen(viewModel: MonedaViewModel) {
         }
     }
 }
+
 
 
