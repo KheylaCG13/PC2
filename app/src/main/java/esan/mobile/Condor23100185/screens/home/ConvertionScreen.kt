@@ -69,7 +69,6 @@ fun ConversionScreen(viewModel: MonedaViewModel) {
                     .fillMaxWidth()
                     .clickable { expandedBase = true }
             )
-
             DropdownMenu(
                 expanded = expandedBase,
                 onDismissRequest = { expandedBase = false }
@@ -118,7 +117,6 @@ fun ConversionScreen(viewModel: MonedaViewModel) {
                     .fillMaxWidth()
                     .clickable { expandedTarget = true }
             )
-
             DropdownMenu(
                 expanded = expandedTarget,
                 onDismissRequest = { expandedTarget = false }
@@ -168,7 +166,6 @@ fun ConversionScreen(viewModel: MonedaViewModel) {
                 else -> {
                     result = String.format("%.2f", value * rate)
 
-                    // Guardar conversión
                     coroutineScope.launch {
                         FirebaseAuthManager.guardarConversion(
                             monto = value,
@@ -195,6 +192,7 @@ fun ConversionScreen(viewModel: MonedaViewModel) {
         }
     }
 }
+
 
 
 
