@@ -1,5 +1,6 @@
 package esan.mobile.Condor23100185.screens.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -40,8 +42,8 @@ fun ConversionScreen(viewModel: MonedaViewModel) {
     val rates = viewModel.conversionRates.value
     val availableCurrencies = viewModel.availableCurrencies.value
 
-    var baseCurrency by remember { mutableStateOf("") }
-    var targetCurrency by remember { mutableStateOf("") }
+    var baseCurrency by remember { mutableStateOf("Selecciona") }
+    var targetCurrency by remember { mutableStateOf("Selecciona") }
     var amount by remember { mutableStateOf("") }
     var result by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
@@ -57,47 +59,41 @@ fun ConversionScreen(viewModel: MonedaViewModel) {
         Text("Conversor de Monedas", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Dropdown: Moneda base
+        // Menú Moneda Base
         Text("Moneda base")
-        Box {
-            OutlinedTextField(
-                value = baseCurrency,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Selecciona") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expandedBase = true }
-            )
-            DropdownMenu(
-                expanded = expandedBase,
-                onDismissRequest = { expandedBase = false }
-            ) {
-                availableCurrencies.forEach { currency ->
-                    DropdownMenuItem(
-                        text = { Text(currency) },
-                        onClick = {
-                            baseCurrency = currency
-                            expandedBase = false
-                            viewModel.loadRates(currency)
-                        }
-                    )
-                }
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .clickable { expandedBase = true }
+            .padding(12.dp)
+            .background(Color.LightGray, shape = RoundedCornerShape(6.dp))
+            .padding(12.dp)) {
+            Text(baseCurrency)
+        }
+        DropdownMenu(
+            expanded = expandedBase,
+            onDismissRequest = { expandedBase = false }
+        ) {
+            availableCurrencies.forEach { currency ->
+                DropdownMenuItem(
+                    text = { Text(currency) },
+                    onClick = {
+                        baseCurrency = currency
+                        expandedBase = false
+                        viewModel.loadRates(currency)
+                    }
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Botón de Intercambiar
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
+        // Botón Intercambiar
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             TextButton(onClick = {
                 val temp = baseCurrency
                 baseCurrency = targetCurrency
                 targetCurrency = temp
-                if (baseCurrency.isNotEmpty()) {
+                if (baseCurrency != "Selecciona") {
                     viewModel.loadRates(baseCurrency)
                 }
             }) {
@@ -105,36 +101,34 @@ fun ConversionScreen(viewModel: MonedaViewModel) {
             }
         }
 
-        // Dropdown: Moneda destino
+        // Menú Moneda Destino
         Text("Convertir a")
-        Box {
-            OutlinedTextField(
-                value = targetCurrency,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Selecciona") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expandedTarget = true }
-            )
-            DropdownMenu(
-                expanded = expandedTarget,
-                onDismissRequest = { expandedTarget = false }
-            ) {
-                availableCurrencies.forEach { currency ->
-                    DropdownMenuItem(
-                        text = { Text(currency) },
-                        onClick = {
-                            targetCurrency = currency
-                            expandedTarget = false
-                        }
-                    )
-                }
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .clickable { expandedTarget = true }
+            .padding(12.dp)
+            .background(Color.LightGray, shape = RoundedCornerShape(6.dp))
+            .padding(12.dp)) {
+            Text(targetCurrency)
+        }
+        DropdownMenu(
+            expanded = expandedTarget,
+            onDismissRequest = { expandedTarget = false }
+        ) {
+            availableCurrencies.forEach { currency ->
+                DropdownMenuItem(
+                    text = { Text(currency) },
+                    onClick = {
+                        targetCurrency = currency
+                        expandedTarget = false
+                    }
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Campo Monto
         OutlinedTextField(
             value = amount,
             onValueChange = { amount = it },
@@ -151,7 +145,7 @@ fun ConversionScreen(viewModel: MonedaViewModel) {
             errorMessage = ""
 
             when {
-                baseCurrency.isEmpty() || targetCurrency.isEmpty() -> {
+                baseCurrency == "Selecciona" || targetCurrency == "Selecciona" -> {
                     errorMessage = "Selecciona ambas monedas."
                 }
                 baseCurrency == targetCurrency -> {
@@ -192,6 +186,7 @@ fun ConversionScreen(viewModel: MonedaViewModel) {
         }
     }
 }
+
 
 
 
