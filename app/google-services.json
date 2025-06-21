@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "37052521346",
+    "project_id": "esan-condor-pc2",
+    "storage_bucket": "esan-condor-pc2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:37052521346:android:d226a7c3f99178c9dd8d9b",
+        "android_client_info": {
+          "package_name": "esan.mobile.Condor23100185"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFgel50AR-d5D5RgcuOoJyqt9PEPY6M5g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
